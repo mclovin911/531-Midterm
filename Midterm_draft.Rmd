@@ -1,0 +1,6 @@
+---
+title: "Midterm_draft"
+author: ""
+date: "3/2/2021"
+output: html_document
+---
