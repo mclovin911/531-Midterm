@@ -4,3 +4,16 @@ author: ""
 date: "3/2/2021"
 output: html_document
 ---
+
+```{r}
+drugs <- read.csv(file="salesmonthly.csv", header=TRUE)
+
+drugs$datum <- as.Date(drugs$datum, "%Y-%m-%d")
+drugs$year <- as.numeric(format(drugs$datum, format="%Y"))
+drugs$month <- as.numeric(format(drugs$datum, format="%m"))
+head(drugs)
+
+#Citation: Chapter 05 notes, https://www.earthdatascience.org/courses/earth-analytics/time-series-data/date-class-in-r/
+
+plot(drugs$R06~drugs$datum, type='l')
+```
