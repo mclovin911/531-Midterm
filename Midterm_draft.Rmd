@@ -17,5 +17,23 @@ head(drugs)
 
 #Citation: Chapter 05 notes, https://www.earthdatascience.org/courses/earth-analytics/time-series-data/date-class-in-r/
 
-plot(drugs$R06~drugs$datum, type='l')
+plot(anhist~drugs$datum, type='l')
+```
+
+Let's take a look at this data in the frequency domain:
+```{r}
+spectrum(anhist)
+```
+
+We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior via a loess bandpass filter:
+
+```{r}
+anhist_low <- ts(loess(anhist~date, span=0.5)$fitted, start=2014, frequency=12)
+anhist_high <- ts(anhist - loess(anhist~date, span=0.1)$fitted, start=2014, frequency=12)
+
+anhist_cycles <- anhist - anhist_high - anhist_low
+
+plot(ts.union(anhist, anhist_low, anhist_high, anhist_cycles))
+
+spectrum(anhist_cycles)
 ```
