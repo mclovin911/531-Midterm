@@ -6,11 +6,9 @@ output: html_document
 ---
 
 ```{r}
-drugs <- read.csv(file="salesmonthly.csv", header=TRUE)
+drugs <- read.csv(file="salesweekly.csv", header=TRUE)
 
-drugs$datum <- as.Date(drugs$datum, "%Y-%m-%d")
-drugs$year <- as.numeric(format(drugs$datum, format="%Y"))
-drugs$month <- as.numeric(format(drugs$datum, format="%m"))
+drugs$datum <- as.Date(drugs$datum, "%m/%d/%Y")
 anhist <- drugs$R06
 head(drugs)
 
@@ -22,18 +20,21 @@ length(anhist)
 
 Let's take a look at this data in the frequency domain:
 ```{r}
-spectrum(anhist)
+anhist_spec <- spectrum(anhist)
+plot(anhist_spec$freq*52, anhist_spec$spec, type='l', log='y')
 ```
 
 We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior via a loess bandpass filter:
 
 ```{r}
-anhist_low <- ts(loess(anhist~as.numeric(drugs$datum), span=0.5)$fitted, start=2014, frequency=12)
-anhist_high <- ts(anhist - loess(anhist~as.numeric(drugs$datum), span=0.1)$fitted, start=2014, frequency=12)
+anhist_low <- ts(loess(anhist~as.numeric(drugs$datum), span=0.5)$fitted, start=2014, frequency=52)
+anhist_high <- ts(anhist - loess(anhist~as.numeric(drugs$datum), span=0.1)$fitted, start=2014, frequency=52)
 
 anhist_cycles <- anhist - anhist_high - anhist_low
 
 plot(ts.union(anhist, anhist_low, anhist_high, anhist_cycles))
 
-spectrum(anhist_cycles)
+cycle_spec <- spectrum(anhist_cycles)
+
+##Citation: From Chapter 8 notes
 ```
