@@ -38,3 +38,15 @@ cycle_spec <- spectrum(anhist_cycles)
 
 ##Citation: From Chapter 8 notes
 ```
+
+Now let's extract the peak frequency of our cyclic data, to see if our hypothesis of a year long cycle holds up:
+
+```{r}
+peak_freq <- cycle_spec$freq[which.max(cycle_spec$spec)]
+
+peak_freq
+period <- 1/peak_freq
+period
+```
+
+We end with a period of approximately 1 year! Success!
