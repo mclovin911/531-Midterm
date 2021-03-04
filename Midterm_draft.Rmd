@@ -12,7 +12,6 @@ drugs$datum <- as.Date(drugs$datum, "%Y-%m-%d")
 drugs$year <- as.numeric(format(drugs$datum, format="%Y"))
 drugs$month <- as.numeric(format(drugs$datum, format="%m"))
 anhist <- drugs$R06
-date <- seq(from=2014,length=length(anhist),by=1/12)
 head(drugs)
 
 #Citation: Chapter 05 notes, https://www.earthdatascience.org/courses/earth-analytics/time-series-data/date-class-in-r/
