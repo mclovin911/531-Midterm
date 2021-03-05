@@ -15,7 +15,7 @@ head(drugs)
 #Citation: Chapter 05 notes, https://www.earthdatascience.org/courses/earth-analytics/time-series-data/date-class-in-r/
 
 plot(anhist~drugs$datum, type='l')
-length(anhist)
+
 ```
 
 Let's take a look at this data in the frequency domain:
