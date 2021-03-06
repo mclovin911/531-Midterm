@@ -4,3 +4,81 @@ author: ""
 date: "3/2/2021"
 output: html_document
 ---
+```{r}
+# Import data
+daily <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesdaily.csv", header=TRUE)
+weekly <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesweekly.csv", header=TRUE)
+
+# Convert datum to time object
+daily$datum <- as.Date(daily$datum, "%m/%d/%Y")
+daily$Day <- as.numeric(format(daily$datum, format='%d'))
+daily$time <- daily$Year+(daily$Month*31+daily$Day)/372
+
+weekly$datum <- as.Date(weekly$datum, "%m/%d/%Y")
+
+# Data structure checking
+head(daily)
+summary(daily)
+str(daily)
+
+# Visual Analysis
+library(ggplot2)
+library(tidyr)
+library(GGally)
+
+daily_long <- gather(daily, drug_type, quantity, M01AB:R06, factor_key = TRUE)
+
+# Boxplot
+a <- "All of them have outliers."
+ggplot(daily_long, aes(y=quantity)) + geom_boxplot(fill='slateblue', alpha=0.2) + facet_wrap(vars(drug_type), scales = 'free_y')
+
+# Pairwise scatterplot
+a <- "No sign of strong linear relationship between R06 and other variables"
+ggpairs(daily[, 1:10])
+
+# Time series plot
+a <- 'According to the sales of R06, seasonal and stationary model seems appropriate for the data'
+plot(R06~datum, data=daily, ty='l', xlab='date', main='daily R06 sales')
+plot(R06~datum, data=weekly, type='l', xlab='date', main='weekly R06 sales')
+
+acf(weekly$R06, lag=100)
+# Least squares estimate of trend
+a <- "According to the coefficient of time-related attribute in the linear model, the mean is barely increasing in time, although we cannot trust the model statistics because of the violation of assumptions to the error term based on the residual acf plot."
+
+lmod <- lm(R06~daily$time+I(daily$time^2), data=daily)
+summary(lmod)
+acf(lmod$residuals)
+Z <- cbind(1, daily$time, daily$time^2)
+pred <- Z%*%lmod$coefficients
+plot(R06~daily$time, data=daily, ty='l', xlab='date', main='daily R06 sales')
+lines(y=pred, x=daily$time, col='red')
+
+# SARMA
+a <- 'We believe we saw annual period. There are two contending models: ARMA(1, 0) with AIC -38 and ARMA(2, 1) with AIC -38.43'
+
+aic_table <- function(data, P, Q){
+  table <- matrix(NA, (P+1), (Q+1))
+  for(p in 0:P){
+    for(q in 0:Q){
+      table[p+1, q+1] <- arima(data, order=c(p, 0, q), seasonal=list(order=c(1, 0, 0), period=52))$aic
+    }
+  }
+  dimnames(table) <- list(paste("AR", 0:P, sep=''), paste("MA", 0:Q, sep=''))
+  table
+}
+
+r06_aic_table <- aic_table(weekly$R06, 3, 3)
+require(knitr)
+kable(r06_aic_table, digits=2)
+
+arma11 <- arima(weekly$R06, order=c(1, 0, 1), seasonal=list(order=c(1, 0, 0), period=52))
+acf(arma11$residuals)
+
+arma22 <- arima(weekly$R06, order=c(2, 0, 2), seasonal=list(order=c(1, 0, 0), period=52))
+acf(arma22$residuals)
+
+plot(arma11$residuals~weekly$datum, type='l')
+plot(arma22$residuals~weekly$datum, type='l')
+
+
+```
