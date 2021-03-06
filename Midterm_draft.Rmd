@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r}
-drugs <- read.csv(file="salesweekly.csv", header=TRUE)
+drugs <- read.csv(file="archive/salesweekly.csv", header=TRUE)
 
 drugs$datum <- as.Date(drugs$datum, "%m/%d/%Y")
 anhist <- drugs$R06
