@@ -4,81 +4,57 @@ author: ""
 date: "3/2/2021"
 output: html_document
 ---
+
 ```{r}
-# Import data
-daily <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesdaily.csv", header=TRUE)
-weekly <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesweekly.csv", header=TRUE)
+drugs <- read.csv(file="archive/salesweekly.csv", header=TRUE)
 
-# Convert datum to time object
-daily$datum <- as.Date(daily$datum, "%m/%d/%Y")
-daily$Day <- as.numeric(format(daily$datum, format='%d'))
-daily$time <- daily$Year+(daily$Month*31+daily$Day)/372
+drugs$datum <- as.Date(drugs$datum, "%m/%d/%Y")
+anhist <- drugs$R06
+head(drugs)
 
-weekly$datum <- as.Date(weekly$datum, "%m/%d/%Y")
+#Citation: Chapter 05 notes, https://www.earthdatascience.org/courses/earth-analytics/time-series-data/date-class-in-r/
 
-# Data structure checking
-head(daily)
-summary(daily)
-str(daily)
-
-# Visual Analysis
-library(ggplot2)
-library(tidyr)
-library(GGally)
-
-daily_long <- gather(daily, drug_type, quantity, M01AB:R06, factor_key = TRUE)
-
-# Boxplot
-a <- "All of them have outliers."
-ggplot(daily_long, aes(y=quantity)) + geom_boxplot(fill='slateblue', alpha=0.2) + facet_wrap(vars(drug_type), scales = 'free_y')
-
-# Pairwise scatterplot
-a <- "No sign of strong linear relationship between R06 and other variables"
-ggpairs(daily[, 1:10])
-
-# Time series plot
-a <- 'According to the sales of R06, seasonal and stationary model seems appropriate for the data'
-plot(R06~datum, data=daily, ty='l', xlab='date', main='daily R06 sales')
-plot(R06~datum, data=weekly, type='l', xlab='date', main='weekly R06 sales')
-
-acf(weekly$R06, lag=100)
-# Least squares estimate of trend
-a <- "According to the coefficient of time-related attribute in the linear model, the mean is barely increasing in time, although we cannot trust the model statistics because of the violation of assumptions to the error term based on the residual acf plot."
-
-lmod <- lm(R06~daily$time+I(daily$time^2), data=daily)
-summary(lmod)
-acf(lmod$residuals)
-Z <- cbind(1, daily$time, daily$time^2)
-pred <- Z%*%lmod$coefficients
-plot(R06~daily$time, data=daily, ty='l', xlab='date', main='daily R06 sales')
-lines(y=pred, x=daily$time, col='red')
-
-# SARMA
-a <- 'We believe we saw annual period. There are two contending models: ARMA(1, 0) with AIC -38 and ARMA(2, 1) with AIC -38.43'
-
-aic_table <- function(data, P, Q){
-  table <- matrix(NA, (P+1), (Q+1))
-  for(p in 0:P){
-    for(q in 0:Q){
-      table[p+1, q+1] <- arima(data, order=c(p, 0, q), seasonal=list(order=c(1, 0, 0), period=52))$aic
-    }
-  }
-  dimnames(table) <- list(paste("AR", 0:P, sep=''), paste("MA", 0:Q, sep=''))
-  table
-}
-
-r06_aic_table <- aic_table(weekly$R06, 3, 3)
-require(knitr)
-kable(r06_aic_table, digits=2)
-
-arma11 <- arima(weekly$R06, order=c(1, 0, 1), seasonal=list(order=c(1, 0, 0), period=52))
-acf(arma11$residuals)
-
-arma22 <- arima(weekly$R06, order=c(2, 0, 2), seasonal=list(order=c(1, 0, 0), period=52))
-acf(arma22$residuals)
-
-plot(arma11$residuals~weekly$datum, type='l')
-plot(arma22$residuals~weekly$datum, type='l')
-
+plot(anhist~drugs$datum, type='l')
 
 ```
+
+The fluctuations in antihistamine sales appears to be cyclical. As antihistamines are frequently used to treat allergies, which can often be triggered by changes in the season [https://acaai.org/allergies/seasonal-allergies]. Let's take a look at this data in the frequency domain to see if our hypothesis of a yearly antihistamine sale cycle is supported:
+```{r, echo=FALSE}
+anhist_spec <- spectrum(anhist, plot=FALSE)
+plot(anhist_spec$freq*52, anhist_spec$spec, type='l', log='y', main="Weekly Antihistamine Sale Spectrum", xlab="Cycles Per Year", ylab="spectrum")
+```
+
+There does appear to be a peak at approximately 1 cycle per year, but let's see if we can make the cyclical pattern even clearer by using a loess bandpass filter. We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior:
+
+```{r}
+a_low <- ts(loess(anhist~as.numeric(drugs$datum), span=0.5)$fitted, start=2014, frequency=52)
+a_high <- ts(anhist - loess(anhist~as.numeric(drugs$datum), span=0.1)$fitted, start=2014, frequency=52)
+
+
+a_cycles <- anhist - a_high - a_low
+
+plot(ts.union(anhist, a_low, a_high, a_cycles))
+
+##Citation: From Chapter 8 notes
+```
+
+The mid-range frequencies look like a fairly regular, one year cycle, which is promising. Let's plot a periodogram and extract the peak frequency of this cycle to see if that is borne out by the data:
+
+```{r}
+cycle_spec <- spectrum(a_cycles, main="Spectrum of Antihistamine Cycles", ylab="spectrum", xlab="Cycles per year")
+abline(v=c(1, 2), col=c("red", "blue"), lty=c(2,2))
+
+```
+
+The above plot shows the periodogram of the mid-range frequency cyclic behavior, with the red line representing our expected peak frequency of 1 cycle per year, and the blue line representing the first harmonic of that expected frequency: 2 cycles per year.
+
+Let's calculate the actual frequency of that first peak and the corresponding period:
+
+```{r}
+peak_freq <- cycle_spec$freq[which.max(cycle_spec$spec)]
+peak_freq
+period <- 1/peak_freq
+period
+```
+
+The periodogram does indeed return a peak frequency of approximately 0.975, which corresponds to a period of approximately 1.03 years. This does indeed support the idea that antihistamine sales experience an annual cycle.

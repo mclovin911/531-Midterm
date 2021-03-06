@@ -18,7 +18,7 @@ Pharma sales dataset is built from transactional data collected in six years (20
 library(ggplot2)
 library(tidyr)
 library(GGally)
-weekly <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesweekly.csv", header=TRUE)
+weekly <- read.csv("archive/salesweekly.csv", header=TRUE)
 weekly$datum <- as.Date(weekly$datum, "%m/%d/%Y")
 ```
 
@@ -69,7 +69,50 @@ acf(weekly$R06, lag=100, main='weekly R06 sample autocorrelation')
 ## 2.3 Frequency Domain Analysis
 
 We can investigate the drug sale data from the frequency domain to get insights from another perspective.
-We can decompose the R06 drug sale into trend, noise ad cycle components.
+We can examine the periodogram of the weekly sales data and decompose the R06 drug sale into trend, noise and cycle components.
+
+The fluctuations in antihistamine sales appears to be cyclical. As antihistamines are frequently used to treat allergies, which can often be triggered by changes in the season ("Common Seasonal Allergy Triggers"). Let's take a look at this data in the frequency domain to see if our hypothesis of a yearly antihistamine sale cycle is supported:
+
+```{r, echo=FALSE}
+anhist <- weekly$R06
+anhist_spec <- spectrum(anhist, plot=FALSE)
+plot(anhist_spec$freq*52, anhist_spec$spec, type='l', log='y', main="Weekly Antihistamine Sale Spectrum", xlab="Cycles Per Year", ylab="spectrum")
+```
+
+There does appear to be a peak at approximately 1 cycle per year, but let's see if we can make the cyclical pattern even clearer by using a loess bandpass filter. We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior (Chapter 8 Notes):
+
+```{r}
+a_low <- ts(loess(anhist~as.numeric(weekly$datum), span=0.5)$fitted, start=2014, frequency=52)
+a_high <- ts(anhist - loess(anhist~as.numeric(weekly$datum), span=0.1)$fitted, start=2014, frequency=52)
+
+
+a_cycles <- anhist - a_high - a_low
+
+plot(ts.union(anhist, a_low, a_high, a_cycles))
+
+##Citation: From Chapter 8 notes
+```
+
+The mid-range frequencies look like a fairly regular, one year cycle, which is promising. Let's plot a periodogram and extract the peak frequency of this cycle to see if that is borne out by the data:
+
+```{r}
+cycle_spec <- spectrum(a_cycles, main="Spectrum of Antihistamine Cycles", ylab="spectrum", xlab="Cycles per year")
+abline(v=c(1, 2), col=c("red", "blue"), lty=c(2,2))
+
+```
+
+The above plot shows the periodogram of the mid-range frequency cyclic behavior, with the red line representing our expected peak frequency of 1 cycle per year, and the blue line representing the first harmonic of that expected frequency: 2 cycles per year.
+
+Let's calculate the actual frequency of that first peak and the corresponding period:
+
+```{r}
+peak_freq <- cycle_spec$freq[which.max(cycle_spec$spec)]
+peak_freq
+period <- 1/peak_freq
+period
+```
+
+The periodogram does indeed return a peak frequency of approximately 0.975, which corresponds to a period of approximately 1.03 years. This does indeed support the idea that antihistamine sales experience an annual cycle.
 
 # 3 Fitting an ARMA model
 
@@ -133,7 +176,7 @@ sarma_aic_table <- function(data, P, Q){
   table
 }
 
-r06_sarma_aic_table <- sarma_aic_table(weekly$R06, 3, 3)
+r06_sarma_aic_table <- sarma_aic_table(weekly$R06, 2, 2)
 require(knitr)
 kable(r06_sarma_aic_table, digits=2)
 
@@ -148,3 +191,17 @@ lines(x=weekly$datum, y=t1, col='red')
 ## 4.2 Model Diagnostics for SARIMA Model
 
 # 5 Conclusion
+
+
+
+# References and Group Activity
+
+We worked collaboratively as a group. There was a lot of group consultation and some overlap in individual investigations and modelling of data. Here, broadly is what we each worked on individually:
+
+Jessica Leviton: Frequency domain analysis, including decomposition into different signal components and extraction of the dominant frequency of the antihistamine sale cycle.
+
+The following sources to compose this project:
+
+“Seasonal Allergies.” ACAAI Public Website, 29 Oct. 2018, acaai.org/allergies/seasonal-allergies.
+
+Ionides, Edward L. "Chapter 8: Smoothing in the Time and Frequency Domains." 2021, ionides.github.io/531w21/08/notes.pdf. 
