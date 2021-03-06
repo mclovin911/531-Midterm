@@ -60,23 +60,64 @@ lines(y=pred, x=weekly$datum, col='red')
 
 ## 2.2 Stationarility and Seasonality
 
-From the sample autocorrelation plot, we find that the sample ACF has strong evidence for period around 52, which corroberates with the inital assumption that the yearly period seasonality.
+From the sample autocorrelation plot, we find that the sample ACF has a peak at around 52, indicating strong evidence for period around 52, which corroberates with the inital assumption that the yearly period seasonality.
+The periodic waves in sample ACF shows seasonal autoregressive model should be appropriate for this data.
 ```{r, echo=F}
 acf(weekly$R06, lag=100, main='weekly R06 sample autocorrelation')
 ```
 
-## 2.3 Frequency Domain EDA
+## 2.3 Frequency Domain Analysis
 
-# 3 Fitting an ARMA model for Anual Analysis
+We can investigate the drug sale data from the frequency domain to get insights from another perspective.
+We can decompose the R06 drug sale into trend, noise ad cycle components.
+
+# 3 Fitting an ARMA model
+
+To establish a baseline model for comparison later, we start with an ARIMA model without considering the seasonal effects.
 
 ## 3.1 Model Selection for ARIMA Model
 
+We choose to use an AIC table as our first step in the model selection process.
+According to the AIC table below, ARMA(1, 1) has the best AIC value 2047.86.
+We also spot an evidence for mathematical instability at ARMA(2, 2) and ARMA(3, 2) where the AIC value increased more than 2.
+
+```{r, echo=F, warning=FALSE}
+arma_aic_table <- function(data, P, Q){
+  table <- matrix(NA, (P+1), (Q+1))
+  for(p in 0:P){
+    for(q in 0:Q){
+      table[p+1, q+1] <- arima(data, order=c(p, 0, q))$aic
+    }
+  }
+  dimnames(table) <- list(paste("AR", 0:P, sep=''), paste("MA", 0:Q, sep=''))
+  table
+}
+r06_arma_aic_table <- arma_aic_table(weekly$R06, 3, 3)
+require(knitr)
+kable(r06_arma_aic_table, digits=2)
+```
+
 ## 3.2 Model Diagnostics for ARIMA Model
 
+We want to assess the goodness of fit of the ARMA(1, 1) model by looking at its residuals.
+Based on the residual ACF, there is no strong evidence for autocorrelation between the residual values at different lags.
+We superimposed the simulated data according to our ARMA(1, 1) model on top of the original R06 sales data.
+As we expected, the ARMA model does not capture the seasonal effects and fits poorly.
+
+```{r, echo=F}
+arma11 <- arima(weekly$R06, order=c(1, 0, 1))
+acf(arma11$residuals, main='ARMA(1, 1) ACF')
+plot(R06~datum, data=weekly, type='l', xlab='date', main='weekly R06 sales')
+t <- arima.sim(model=list(ar=0.902, ma=-0.3532), n=302)+mean(weekly$R06)
+lines(x=weekly$datum, y=t, col='red')
+```
 
 # 4 Fitting SARIMA Model
 
+As we found from our exploratory data analysis, the time series data has a seasonal component with yearly period of 52 data points. Now we want to add the seasonal component into our model and see how much it improves the fit.
+
 ## 4.1 Model Selection for SARIMA Model
+
 
 
 ## 4.2 Model Diagnostics for SARIMA Model
