@@ -1,0 +1,84 @@
+---
+title: "STATS 531 Midterm Project"
+author: "Xingwen Wei"
+date: "March 6, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1 Pharma Sales Dataset
+
+Pharma sales dataset is built from transactional data collected in six years (2014-2019) indicating the date and time of the sale and pharmaceutical drug brand and quantity. The drugs are classified into eight groups by Anatomical Therapeutic Chemical (ATC) Classification System. For the purpose of this project, we focus on one specific group of drugs, R06, in which are antihistamines for systemic use. The main concern of this analysis is to find the connection between seasonal change and the difference in antihistamine sales across the year.
+
+# 2 Exploratory Data Analysis
+```{r, echo=F, warnings=F}
+library(ggplot2)
+library(tidyr)
+library(GGally)
+weekly <- read.csv("C:/Users/xingw/Desktop/531/531-Midterm/archive/salesweekly.csv", header=TRUE)
+weekly$datum <- as.Date(weekly$datum, "%m/%d/%Y")
+```
+
+## 2.1 Basic Statistics
+
+Firstly, we want to look at the basic statistics of the drug sales.
+```{r, echo=F}
+summary(weekly)
+```
+
+From the following boxplots, we find that all of the drug sales have outliers.
+```{r, echo=F}
+weekly_long <- gather(weekly, drug_type, quantity, M01AB:R06, factor_key = TRUE)
+ggplot(weekly_long, aes(y=quantity)) + geom_boxplot(fill='slateblue', alpha=0.2) + facet_wrap(vars(drug_type), scales = 'free_y')
+```
+
+From the following pairwise scatterplot, we find that there is no sign of strong linear relationship between R06 and other variables
+```{r, echo=F}
+ggpairs(weekly[, 1:10])
+```
+
+
+According to the coefficient of time-related attribute in the linear model, the mean is barely increasing in time, although we cannot trust the model statistics because of the violation of assumptions to the error term based on the residual acf plot.
+From the time plot of R06 sales against time, we find stationary model may not be appropriate for the data.
+```{r, echo=F}
+weekly$Day <- as.numeric(format(weekly$datum, format='%d'))
+weekly$Month <- as.numeric(format(weekly$datum, format='%m'))
+weekly$Year <- as.numeric(format(weekly$datum, format='%Y'))
+weekly$time <- weekly$Year+(weekly$Month*31+weekly$Day)/372
+lmod <- lm(R06~weekly$time+I(weekly$time^2), data=weekly)
+summary(lmod)
+acf(lmod$residuals)
+Z <- cbind(1, weekly$time, weekly$time^2)
+pred <- Z%*%lmod$coefficients
+plot(R06~datum, data=weekly, type='l', xlab='date', main='weekly R06 sales')
+lines(y=pred, x=weekly$datum, col='red')
+```
+
+
+## 2.2 Stationarility and Seasonality
+
+From the sample autocorrelation plot, we find that the sample ACF has strong evidence for period around 52, which corroberates with the inital assumption that the yearly period seasonality.
+```{r, echo=F}
+acf(weekly$R06, lag=100, main='weekly R06 sample autocorrelation')
+```
+
+## 2.3 Frequency Domain EDA
+
+# 3 Fitting an ARMA model for Anual Analysis
+
+## 3.1 Model Selection for ARIMA Model
+
+## 3.2 Model Diagnostics for ARIMA Model
+
+
+# 4 Fitting SARIMA Model
+
+## 4.1 Model Selection for SARIMA Model
+
+
+## 4.2 Model Diagnostics for SARIMA Model
+
+# 5 Conclusion
