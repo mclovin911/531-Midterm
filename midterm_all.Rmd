@@ -71,7 +71,7 @@ acf(weekly$R06, lag=100, main='weekly R06 sample autocorrelation')
 We can investigate the drug sale data from the frequency domain to get insights from another perspective.
 We can examine the periodogram of the weekly sales data and decompose the R06 drug sale into trend, noise and cycle components.
 
-The fluctuations in antihistamine sales appears to be cyclical. As antihistamines are frequently used to treat allergies, which can often be triggered by changes in the season [https://acaai.org/allergies/seasonal-allergies]. Let's take a look at this data in the frequency domain to see if our hypothesis of a yearly antihistamine sale cycle is supported:
+The fluctuations in antihistamine sales appears to be cyclical. As antihistamines are frequently used to treat allergies, which can often be triggered by changes in the season ("Common Seasonal Allergy Triggers"). Let's take a look at this data in the frequency domain to see if our hypothesis of a yearly antihistamine sale cycle is supported:
 
 ```{r, echo=FALSE}
 anhist <- weekly$R06
@@ -79,7 +79,7 @@ anhist_spec <- spectrum(anhist, plot=FALSE)
 plot(anhist_spec$freq*52, anhist_spec$spec, type='l', log='y', main="Weekly Antihistamine Sale Spectrum", xlab="Cycles Per Year", ylab="spectrum")
 ```
 
-There does appear to be a peak at approximately 1 cycle per year, but let's see if we can make the cyclical pattern even clearer by using a loess bandpass filter. We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior:
+There does appear to be a peak at approximately 1 cycle per year, but let's see if we can make the cyclical pattern even clearer by using a loess bandpass filter. We'll try to separate out the low frequency trend and high frequency noise to extract the cyclical behavior (Chapter 8 Notes):
 
 ```{r}
 a_low <- ts(loess(anhist~as.numeric(weekly$datum), span=0.5)$fitted, start=2014, frequency=52)
@@ -191,3 +191,17 @@ lines(x=weekly$datum, y=t1, col='red')
 ## 4.2 Model Diagnostics for SARIMA Model
 
 # 5 Conclusion
+
+
+
+# References and Group Activity
+
+We worked collaboratively as a group. There was a lot of group consultation and some overlap in individual investigations and modelling of data. Here, broadly is what we each worked on individually:
+
+Jessica Leviton: Frequency domain analysis, including decomposition into different signal components and extraction of the dominant frequency of the antihistamine sale cycle.
+
+The following sources to compose this project:
+
+“Seasonal Allergies.” ACAAI Public Website, 29 Oct. 2018, acaai.org/allergies/seasonal-allergies.
+
+Ionides, Edward L. "Chapter 8: Smoothing in the Time and Frequency Domains." 2021, ionides.github.io/531w21/08/notes.pdf. 
