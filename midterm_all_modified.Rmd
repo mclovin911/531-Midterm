@@ -217,6 +217,8 @@ As we expected, the SARMA model does capture the seasonal effects, and it fits b
 
 We worked collaboratively as a group. There was a lot of group consultation and some overlap in individual investigations and modelling of data. Here, broadly is what we each worked on individually:
 
+Xingwen Wei: Report skeleton. Essentials of part 1, 2, 3, 4.
+
 Jessica Leviton: Frequency domain analysis, including decomposition into different signal components and extraction of the dominant frequency of the antihistamine sale cycle.
 
 Entong Li: Model formal notatio part, and seasonal ARIMA part.
