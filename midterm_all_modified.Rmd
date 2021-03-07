@@ -1,17 +1,17 @@
 ---
 title: "STATS 531 Midterm Project"
-author: "Xingwen Wei"
+author: "Xingwen Wei,  Isabella S Gierlinger, Jessica Natalie Leviton, Entong Li"
 date: "March 6, 2021"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
 ```
 
 # 1 Pharma Sales Dataset
 
-Pharma sales dataset is built from transactional data collected in six years (2014-2019) indicating the date and time of the sale and pharmaceutical drug brand and quantity.The drugs are classified into eight groups by Anatomical Therapeutic Chemical (ATC) Classification System. For the purpose of this project, we focus on one specific group of drugs, R06, in which are antihistamines for systemic use. The main concern of this analysis is to find the connection between seasonal change and the difference in antihistamine sales across the year.
+[Pharma sales dataset](https://www.kaggle.com/milanzdravkovic/pharma-sales-data) is built from transactional data collected in six years (2014-2019) indicating the date and time of the sale and pharmaceutical drug brand and quantity.This dataset is getting from the Kaggle. The drugs are classified into eight groups by Anatomical Therapeutic Chemical (ATC) Classification System. For the purpose of this project, we focus on one specific group of drugs, R06, in which are antihistamines for systemic use. The main concern of this analysis is to find the connection between seasonal change and the difference in antihistamine sales across the year.
 
 # 2 Exploratory Data Analysis
 ```{r, echo=F, warnings=F}
@@ -221,10 +221,14 @@ Xingwen Wei: Report skeleton. Essentials of part 1, 2, 3, 4.
 
 Jessica Leviton: Frequency domain analysis, including decomposition into different signal components and extraction of the dominant frequency of the antihistamine sale cycle.
 
-Entong Li: Model formal notatio part, and seasonal ARIMA part.
+Entong Li: Writing the model formula and notatio part, and seasonal ARIMA part.
 
 The following sources to compose this project:
 
 “Seasonal Allergies.” ACAAI Public Website, 29 Oct. 2018, acaai.org/allergies/seasonal-allergies.
+
+Ionides, Edward L. "Chapter 6: Extending the ARMA model: Seasonality, integration and trend." 2021, ionides.github.io/531w21/06/notes.pdf.
+
+Ionides, Edward L. "Chapter 5: Parameter estimation and model identification for ARMA models." 2021, ionides.github.io/531w21/05/notes.pdf.
 
 Ionides, Edward L. "Chapter 8: Smoothing in the Time and Frequency Domains." 2021, ionides.github.io/531w21/08/notes.pdf.
