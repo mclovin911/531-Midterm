@@ -203,7 +203,7 @@ plot(R06~datum, data=weekly, type='l', xlab='date', main='weekly R06 sales')
 lines(x=weekly$datum, y=t1, col='red')
 ```
 
-Agian, in order to check the goodness of fit of the SARMA(1, 1) model, we will look at its residuals.
+Again, in order to check the goodness of fit of the SARMA(1, 1) model, we will look at its residuals.
 Based on the residual ACF, there is no strong evidence for autocorrelation between the residual values at different lags.
 We overlay the simulated data(red line) according to our SARMA(1, 1) model on the original R06 sales data(black line).
 As we expected, the SARMA model does capture the seasonal effects, and it fits better than the ARMA(1,1) showed above.
@@ -211,17 +211,23 @@ As we expected, the SARMA model does capture the seasonal effects, and it fits b
 
 # 5 Conclusion
 
+Overall, we conclude that the SARMA(1,1) model performs best for our dataset, and captures some weekly seasonality. We hypothesize that the weekly seasonality is likely due to the correlation between prescriptions and business week periodicity, though there are perhaps still more complex underlying causes as well. 
+
+While we investigated linear regression with ARMA errors, we could not include outside covariates due to lack of available background information about our dataset, and thus we found that the regression approach did not outperform the other approaches we've outlined in this report.  
+
 
 
 # References and Group Activity:
 
-We worked collaboratively as a group. There was a lot of group consultation and some overlap in individual investigations and modelling of data. Here, broadly is what we each worked on individually:
+We worked collaboratively as a group. There was a lot of group consultation and some overlap in individual investigations and modelling of data. Here, broadly, is what we each worked on individually:
 
 Xingwen Wei: Report skeleton. Essentials of part 1, 2, 3, 4.
 
 Jessica Leviton: Frequency domain analysis, including decomposition into different signal components and extraction of the dominant frequency of the antihistamine sale cycle.
 
-Entong Li: Writing the model formula and notatio part, and seasonal ARIMA part.
+Entong Li: Writing the model formula and notation part, and seasonal ARIMA part.
+
+Isabella Gierlinger: Writing conclusion, ARMA and ARIMA models, investigation of regression with ARMA errors. 
 
 The following sources to compose this project:
 
